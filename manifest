@@ -1,0 +1,14 @@
+: 1
+name: perfevent
+version: 0.1.0-a.0.z
+summary: A header-only C++ wrapper for Linux' perf event API
+license: MIT
+description-file: README.md
+url: https://github.com/lyrahgames/perfevent
+email: markuspawellek@gmail.com
+build-warning-email: markuspawellek@gmail.com
+depends: * build2 >= 0.11.0
+depends: * bpkg >= 0.11.0
+requires: linux
+requires: c++11 | c++14 | c++17 | c++20
+builds: linux

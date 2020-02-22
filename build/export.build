@@ -1,0 +1,6 @@
+$out_root/
+{
+  include perfevent/
+}
+
+export $out_root/perfevent/$import.target
