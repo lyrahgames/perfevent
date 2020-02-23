@@ -7,16 +7,19 @@ int main() {
 
   const int n = 10000000;
 
+  // Start the measurement.
   PerfEvent e;
   e.startCounters();
 
+  // The following code will be measured.
   mt19937 rng{};
   decltype(rng()) result{};
-  for (auto i = n; i > 0; --i)  // this code will be measured
-    result += rng();
+  for (auto i = n; i > 0; --i) result += rng();
 
+  // Stop the measurement.
   e.stopCounters();
-  e.printReport(cout, n);  // use n as scale factor
+  // Print measurement scaled by n.
+  e.printReport(cout, n);
 
   cout << "result = " << result << "\n";
 }

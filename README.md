@@ -74,6 +74,10 @@ Forked from Viktor Leis to add CMake and build2 packaging support.
 </table>
 </b>
 
+## Authors
+- Original Autor: Viktor Leis
+- Fork Author: Markus Pawellek (markuspawellek@gmail.com)
+
 ## Requirements
 - Operating System: Linux
 - Minimal Standard: C++11
@@ -82,26 +86,19 @@ Forked from Viktor Leis to add CMake and build2 packaging support.
 - Compiler: GCC | Clang | Intel
 - Build System: CMake | build2
 
-## Getting the Code
-
-### By Inlining it in the project
+## Getting and Including the Code
+### Project Inlining for build2/CMake Projects and Projects without Build Systems
+Go into your project folder.
+Optionally, go into the specific folder of your project for external source code.
+Run the following command to get the code.
 ```
   curl https://raw.githubusercontent.com/lyrahgames/perfevent/master/perfevent/perfevent.hpp --create-dirs -o perfevent/perfevent.hpp
 ```
+If you are using no build system, make sure to add the current directory to the standard include paths of your compiler by using a flag.
+In CMake, you can do this by using `include_directories` or `target_include_directories`.
+In build2, use the configuration variable `cxx.poptions` in your `buildfile` and add the specific include flag.
 
-```cmake
-  target_include_directories()
-```
-
-
-
-### By Using Git and a Build System
-```
-  mkdir perfevent
-  git clone https://github.com/lyrahgames/perfevent.git
-```
-
-### build2 Package for build2 project
+### build2 Package Dependency for build2 Projects
 Add the following entry to the file `repositories.manifest`.
 ```
 :
@@ -118,89 +115,163 @@ Import the library in the according `buildfile` and link it to your target by pu
 import perfevent_lib = perfevent%lib{perfevent}
 ```
 
-### build2 Package Installation
-### CMake Package Installation
-
-### Basic Usage:
-```c++
-  #include "PerfEvent.hpp"
-  ...
-  PerfEvent e;
-  e.startCounters();
-  for (int i=0; i<n; i++) // this code will be measured
-    ...
-  e.stopCounters();
-  e.printReport(std::cout, n); // use n as scale factor
-  std::cout << std::endl;
+### build2 Package Installation for build2 Projects and Projects without Build System
+Create a build2 configuration for packages if it does not exist already.
+Define a valid installation path which can be found by the compiler.
+Use specific options, such as to state the compiler with its flags, if necessary.
+```
+bpkg -d build2-packages cc \
+  config.install.root=/usr/local \
+  config.install.sudo=sudo
+```
+Get the latest package release and build it.
+```
+bpkg build https://github.com/lyrahgames/perfevent.git
+```
+Install the built package.
+```
+bpkg install perfevent
+```
+For uninstalling, do the following.
+```
+bpkg uninstall perfevent
+```
+Because the library consists only of header files, the following can be omitted.
+But it is recommended to do it otherwise, such that all dependencies are stated explicitly.
+In the appropriate `buildfile`, import the library by the following code and put the variable into the prerequisites of your target.
+```
+import perfevent_lib = perfevent%lib{perfevent}
+```
+If you are using a `manifest` file, state `perfevent` as a requirement.
+```
+requires: perfevent
 ```
 
-This prints something like this:
+### CMake Package Installation for CMake Projects and Projects without Build System
+Download the repository and create a configuration.
 ```
-cycles, instructions, L1-misses, LLC-misses, branch-misses, task-clock,    scale, IPC, CPUs,  GHz
- 10.97,     28.01,      0.22,       0.00,          0.00,       3.89, 10000000, 2.55, 1.00, 2.82
+git clone https://github.com/lyrahgames/perfevent.git
+mkdir perfevent-cmake-build
+cd perfevent-cmake-build
+cmake ../perfevent
 ```
-
-### Usage of PerfEventBlock (convenience wrapper):
-
-```c++
-  #include "PerfEvent.hpp"
-
-  // Define some global params
-  BenchmarkParameters params;
-  params.setParam("name","Dummy Benchmark");
-  params.setParam("dataSize","100 GB");
-
-  for (int threads=1;threads<maxThreads;++threads) {
-
-    // Change local parameters like num threads
-    params.setParam("threads",numThreads);
-
-    // Only print the header for the first iteration
-    bool printHeader=numThreads==1;
-
-    PerfEventBlock e(n,params,printHeader);
-    // Counter are started in constructor
-
-    yourBenchmark();
-
-    // Benchmark counters are automatically stopped and printed on destruction of e
-  }
+Optionally, build and run the tests.
+```
+cmake --build .
+ctest --verbose
+```
+Install the library and the CMake package.
+```
+sudo cmake --build . --target install
+```
+To uninstall the library do the following.
+```
+sudo cmake --build . --target uninstall
+```
+Because the library consists only of header files, the following can be omitted.
+But it is recommended to do it otherwise, such that all dependencies are stated explicitly.
+In the appropriate `CMakeLists.txt` file, use `find_package(perfevent)` to find the library and link with the imported target `perfevent::perfevent` by using `target_link_libraries`.
+The following code shows an example.
+```cmake
+find_package(perfevent REQUIRED)
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE perfevent::perfevent)
 ```
 
-This prints something like this:
+### CMake Package Export from Build Configuration for CMake Projects
+Download the repository and create a configuration.
 ```
-           name, dataSize, threads, time sec,      cycles, instructions, L1-misses, LLC-misses, branch-misses, task-clock,   scale,      IPC,     CPUs,      GHz
-Dummy Benchmark,   100 GB,       1, 1.400645, 1075.520519,  1931.465504,  8.888315,   0.070063,      0.121389, 280.115649, 5000000, 1.795843, 0.999952, 3.839559
-Dummy Benchmark,   100 GB,       2, 1.133364, 2386.772941,  2062.313141, 32.095011,   0.043248,      0.918986, 650.737357, 5000000, 0.864059, 1.870823, 3.667798
-...
+git clone https://github.com/lyrahgames/perfevent.git
+mkdir perfevent-cmake-build
+cd perfevent-cmake-build
+cmake ../perfevent
+```
+Through the standard CMake package export you can externally use the library from the build tree.
+In the appropriate `CMakeLists.txt` file, use `find_package(perfevent)` to find the library and link with the imported target `perfevent::perfevent` by using `target_link_libraries`.
+The following code shows an example.
+```cmake
+find_package(perfevent REQUIRED)
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE perfevent::perfevent)
 ```
 
-## Basic Example
+## Usage and Examples
+### Basic
+The following code snippet demonstrates the basic usage.
 ```c++
   #include <iostream>
   #include <perfevent/perfevent.hpp>
   #include <random>
 
   int main() {
-    const int n = 10000000;
-    std::mt19937 rng{};
+    using namespace std;
 
-    BenchmarkParameters params;
-    params.setParam("n", std::to_string(n));
+    const int n = 10000000;
+
+    // Start the measurement.
+    PerfEvent e;
+    e.startCounters();
+
+    // The following code will be measured.
+    mt19937 rng{};
     decltype(rng()) result{};
+    for (auto i = n; i > 0; --i)
+      result += rng();
+
+    // Stop the measurement.
+    e.stopCounters();
+    // Print measurement scaled by n.
+    e.printReport(cout, n);
+
+    cout << "result = " << result << "\n";
+  }
+```
+After compiling the program, the result on the terminal should be something like this.
+```
+cycles, instructions, L1-misses, LLC-misses, branch-misses, task-clock,    scale,  IPC, CPUs,  GHz 
+ 50.36,        75.56,      0.00,       0.00,          0.51,      26.81, 10000000, 1.50, 1.00, 1.88 
+result = 21475859227138269
+```
+
+### PerfEventBlock as a Convenience Wrapper
+According to the RAII principle, the structure `PerfEventBlock` can be used as a convenient wrapper as shown in the following snippet.
+```c++
+  #include <iostream>
+  #include <perfevent/perfevent.hpp>
+  #include <random>
+
+  int main() {
+    using namespace std;
+
+    const int n = 10000000;
+
+    // Define some global parameters.
+    BenchmarkParameters params;
+    params.setParam("n", to_string(n));
+
+    // Initialize stuff before measurement.
+    mt19937 rng{};
+    decltype(rng()) result{};
+
     {
-      params.setParam("name", "std::mt19937");
-      PerfEventBlock e(n, params, true);
+      // Change local parameters, such as the name or the number of threads.
+      params.setParam("name", "mt19937");
+      // Start the measurement by construction and decide on displaying header.
+      bool header = true;
+      PerfEventBlock e(n, params, header);
+
+      // Do the benchmark.
       for (auto i = n; i > 0; --i) {
         result += rng();
       }
+
+      // End the measurement at the end of the scope.
     }
-    std::cout << "result = " << result << "\n";
+
+    cout << "result = " << result << "\n";
   }
 ```
-
 The following should be the output of the program.
-
 ```
        n,         name, time sec, cycles, instructions, L1-misses, LLC-misses, branch-misses, task-clock,    scale,  IPC, CPUs,  GHz 
 10000000, std::mt19937,     0.02,   8.08,        33.23,      0.00,       0.00,          0.00,       1.79, 10000000, 4.11, 1.00, 4.51 
@@ -208,9 +279,4 @@ result = 21475859227138269
 ```
 
 ## Troubleshooting
-
 You may need to run `sudo sysctl -w kernel.perf_event_paranoid=-1` and/or add `kernel.perf_event_paranoid = -1` to `/etc/sysctl.conf`
-
-## Authors
-- Original Autor: Viktor Leis
-- Fork Author: Markus Pawellek (markuspawellek@gmail.com)
