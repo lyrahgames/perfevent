@@ -1,3 +1,4 @@
 import libs = perfevent%lib{perfevent}
 
 ./: exe{basic}: cxx{basic} $libs
+./: exe{wrapper}: cxx{wrapper} $libs

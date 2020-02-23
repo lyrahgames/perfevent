@@ -10,3 +10,7 @@ endif()
 add_executable(basic basic.cpp)
 target_link_libraries(basic PRIVATE perfevent::perfevent)
 add_test(basic basic)
+
+add_executable(wrapper wrapper.cpp)
+target_link_libraries(wrapper PRIVATE perfevent::perfevent)
+add_test(wrapper wrapper)

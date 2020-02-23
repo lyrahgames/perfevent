@@ -7,16 +7,19 @@ int main() {
 
   const int n = 10000000;
 
-  PerfEvent e;
-  e.startCounters();
+  BenchmarkParameters params;
+  params.setParam("n", to_string(n));
 
   mt19937 rng{};
   decltype(rng()) result{};
-  for (auto i = n; i > 0; --i)  // this code will be measured
-    result += rng();
+  {
+    params.setParam("name", "mt19937");
+    PerfEventBlock e(n, params, true);
 
-  e.stopCounters();
-  e.printReport(cout, n);  // use n as scale factor
+    for (auto i = n; i > 0; --i) {
+      result += rng();
+    }
+  }
 
   cout << "result = " << result << "\n";
 }
