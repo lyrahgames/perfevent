@@ -1,0 +1,12 @@
+if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_LIST_DIR})
+  cmake_minimum_required(VERSION 3.13)
+  project(perfevent-tests)
+  message(STATUS "Tests for 'perfevent' will be built separately.")
+  enable_testing()
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake")
+  find_package(perfevent REQUIRED)
+endif()
+
+add_executable(basic basic.cpp)
+target_link_libraries(basic PRIVATE perfevent::perfevent)
+add_test(basic basic)

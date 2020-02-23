@@ -11,6 +11,9 @@
 !export.build
 !manifest
 
+!*.cmake
+!CMakeLists.txt
+
 !LICENSE
 !README.md
 
