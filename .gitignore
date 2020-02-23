@@ -14,6 +14,8 @@
 !*.cmake
 !CMakeLists.txt
 
+!.circleci/config.yml
+
 !LICENSE
 !README.md
 
