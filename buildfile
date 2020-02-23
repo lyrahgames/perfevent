@@ -1,2 +1,2 @@
-./: {*/ -build/} manifest doc{README.md LICENSE}
+./: {*/ -build/ -cmake/} manifest doc{README.md LICENSE}
 tests/: install = false
