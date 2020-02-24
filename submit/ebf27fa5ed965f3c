@@ -1,0 +1,5 @@
+: 1
+name: perfevent
+version: 0.2.0
+summary: A header-only C++ wrapper for Linux' perf event API
+license: MIT
